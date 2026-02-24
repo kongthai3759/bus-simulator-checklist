@@ -25,7 +25,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('https://www.svgrepo.com/show/485002/bus.svg'); 
+            background-image: url('https://www.svgrepo.com/svg/99266/bus.svg'); 
             background-repeat: no-repeat;
             background-position: center;
             background-size: 40%;
@@ -38,29 +38,42 @@
             body { background-color: white; }
             .no-print { display: none !important; }
             .container { max-width: 100% !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important; }
-            .item-card { border: 1px solid #ddd !important; margin-bottom: 10px !important; page-break-inside: avoid; }
+            .item-card { border: 1px solid #000 !important; margin-bottom: -1px !important; page-break-inside: avoid; border-radius: 0 !important; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             .signature-section { display: flex !important; flex-direction: row !important; justify-content: space-between !important; margin-top: 60px !important; page-break-inside: avoid; }
             .signature-box { width: 45% !important; }
-            select {
-                appearance: none;
-                border: none;
-                padding: 0;
-                background: transparent;
-                font-weight: bold;
-            }
+            select { appearance: none; border: none; padding: 0; background: transparent; font-weight: bold; }
+            table { border-collapse: collapse !important; width: 100% !important; }
+            th, td { border: 1px solid #000 !important; }
         }
 
         .item-card { background-color: rgba(255, 255, 255, 0.8); transition: all 0.2s; }
         .status-label { display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
         .status-pass:checked + span { color: #16a34a; font-weight: bold; }
         .status-fail:checked + span { color: #dc2626; font-weight: bold; }
+
+        #loader {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            flex-direction: column;
+        }
     </style>
 </head>
 <body class="text-gray-800">
 
-    <nav class="bg-blue-700 text-white p-4 shadow-md no-print sticky top-0 z-50">
-        <div class="max-w-3xl mx-auto flex justify-between items-center">
+    <div id="loader">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mb-4"></div>
+        <p>กำลังบันทึกข้อมูลลง Google Sheets...</p>
+    </div>
+
+    <nav class="bg-pink-700 text-white p-4 shadow-md no-print sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
             <h1 class="text-lg font-semibold flex items-center"><i class="fas fa-bus mr-2"></i> แบบตรวจความพร้อม Bus Simulator</h1>
             <button onclick="window.print()" class="bg-white text-blue-700 px-4 py-1.5 rounded-lg shadow hover:bg-gray-100 transition text-sm font-bold">
                 <i class="fas fa-file-pdf mr-1"></i> ออกรายงาน / PDF
@@ -68,11 +81,11 @@
         </div>
     </nav>
 
-    <div class="max-w-3xl mx-auto p-4 sm:p-8 container bg-white shadow-xl sm:my-6 sm:rounded-xl watermark-container">
+    <div class="max-w-4xl mx-auto p-4 sm:p-8 container bg-white shadow-xl sm:my-6 sm:rounded-xl watermark-container">
         
         <div class="relative z-10">
-            <div class="text-center mb-8">
-                <h1 class="text-xl sm:text-2xl font-bold text-gray-900">ตรวจความพร้อมศูนย์ฝึกขับรถโดยสารจำลอง (Bus Simulator)</h1>
+            <div class="text-center mb-6">
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-900 uppercase">ตรวจความพร้อมศูนย์ฝึกขับรถโดยสารจำลอง (Bus Simulator)</h1>
                 <div class="flex items-center justify-center space-x-2 text-lg text-gray-700 font-medium mt-1">
                     <span>ประจำเดือน</span>
                     <select id="selectMonth" class="border-b-2 border-dashed border-gray-400 focus:outline-none focus:border-blue-500 bg-transparent py-1 px-2">
@@ -90,437 +103,139 @@
                         <option value="ธันวาคม">ธันวาคม</option>
                     </select>
                     <span>พ.ศ.</span>
-                    <select id="selectYear" class="border-b-2 border-dashed border-gray-400 focus:outline-none focus:border-blue-500 bg-transparent py-1 px-2">
-                    </select>
+                    <select id="selectYear" class="border-b-2 border-dashed border-gray-400 focus:outline-none focus:border-blue-500 bg-transparent py-1 px-2"></select>
                 </div>
             </div>
 
             <form id="auditForm">
-                <!-- ข้อมูลพื้นฐาน -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 bg-blue-50 p-4 rounded-lg border border-blue-100 no-print">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 bg-pink-50 p-4 rounded-lg border border-blue-100 no-print">
                     <div>
-                        <label class="block text-sm font-bold text-blue-900 mb-1">วันที่ตรวจสอบ</label>
+                        <label class="block text-sm font-bold text-pink-900 mb-1">วันที่ตรวจสอบ</label>
                         <input type="date" id="checkDate" class="w-full border-gray-300 rounded-md p-2 border focus:ring-2 focus:ring-blue-500" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-blue-900 mb-1">ชื่อผู้ตรวจสอบ</label>
+                        <label class="block text-sm font-bold text-pink-900 mb-1">ชื่อผู้ตรวจสอบ</label>
                         <input type="text" id="inspectorName" placeholder="ระบุชื่อ-นามสกุล" class="w-full border-gray-300 rounded-md p-2 border focus:ring-2 focus:ring-blue-500" required>
                     </div>
                 </div>
 
-                <div class="space-y-6">
-                    
-                    <!-- ข้อ 1 -->
-                    <div class="item-card border rounded-lg overflow-hidden shadow-sm">
-                        <div class="bg-gray-800 text-white px-4 py-2 font-bold">1. ตรวจสอบระบบไฟฟ้า 380 โวลต์ (3 Phase)</div>
-                        <div class="p-0">
-                            <table class="w-full text-sm">
-                                <tr class="border-b bg-gray-50 text-gray-600 font-bold uppercase text-xs">
-                                    <td class="p-2 w-1/2">รายละเอียดการตรวจ</td>
-                                    <td class="p-2 text-center" colspan="2">สถานะ</td>
-                                </tr>
-                                <tr class="border-b">
-                                    <td class="p-3">
-                                        <div class="font-medium">- ชุดเบรกเกอร์ (Main Breaker)</div>
-                                        <div class="text-xs text-gray-500 ml-3">• ตรวจการยึดแน่นและการตัดต่อไฟ</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q1_1" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q1_1" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse border border-gray-300 text-sm">
+                        <thead class="bg-gray-100 text-center font-bold">
+                            <tr>
+                                <td class="border border-gray-300 p-2 w-12" rowspan="2">ลำดับ</td>
+                                <td class="border border-gray-300 p-2" rowspan="2">รายการตรวจ (audit)</td>
+                                <td class="border border-gray-300 p-1" colspan="2">ผลการตรวจ</td>
+                                <td class="border border-gray-300 p-2 w-32" rowspan="2">หมายเหตุ</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 p-1 w-16">ผ่าน</td>
+                                <td class="border border-gray-300 p-1 w-16">ไม่ผ่าน</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- ข้อ 1 -->
+                            <tr class="bg-gray-50 font-bold"><td class="p-2 text-center border">1</td><td class="p-2 border" colspan="4">ตรวจสอบระบบไฟฟ้า 380 โวลต์กระแสสลับ 3 เฟส ห้องควบคุมไฟฟ้า</td></tr>
+                            <tr>
+                                <td class="border"></td>
+                                <td class="p-2 border pl-6">- ชุดเบรกเกอร์</td>
+                                <td class="border text-center"><label class="status-label"><input type="radio" name="q1_1" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td>
+                                <td class="border text-center"><label class="status-label"><input type="radio" name="q1_1" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td>
+                                <td class="border p-1"><input type="text" name="n1_1" class="w-full bg-transparent outline-none"></td>
+                            </tr>
 
-                    <!-- ข้อ 2 -->
-                    <div class="item-card border rounded-lg overflow-hidden shadow-sm">
-                        <div class="bg-gray-800 text-white px-4 py-2 font-bold">2. การตรวจสอบความสะอาด ภายใน - ภายนอก</div>
-                        <div class="p-0">
-                            <table class="w-full text-sm">
-                                <tr class="border-b">
-                                    <td class="p-3 w-1/2">
-                                        <div class="font-medium">- บริเวณพื้นด้านหน้าและภายในศูนย์ฯ</div>
-                                        <div class="text-xs text-gray-500 ml-3">• ไม่มีขยะและฝุ่นละอองสะสม</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q2_1" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q2_1" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                                <tr class="border-b">
-                                    <td class="p-3">
-                                        <div class="font-medium">- ความสะอาดของกระจก</div>
-                                        <div class="text-xs text-gray-500 ml-3">• กระจกใส ไม่มีคราบรอยนิ้วมือรบกวนสายตา</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q2_2" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q2_2" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
+                            <!-- ข้อ 2 -->
+                            <tr class="bg-gray-50 font-bold"><td class="p-2 text-center border">2</td><td class="p-2 border" colspan="4">การตรวจสอบความสะอาด ภายใน - ภายนอก</td></tr>
+                            <tr>
+                                <td class="border"></td>
+                                <td class="p-2 border pl-6">- บริเวณพื้นด้านหน้าและภายในศูนย์ฯ</td>
+                                <td class="border text-center"><label class="status-label"><input type="radio" name="q2_1" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td>
+                                <td class="border text-center"><label class="status-label"><input type="radio" name="q2_1" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td>
+                                <td class="border p-1"><input type="text" name="n2_1" class="w-full bg-transparent outline-none"></td>
+                            </tr>
+                            <tr>
+                                <td class="border"></td>
+                                <td class="p-2 border pl-6">- ความสะอาดของกระจกภายในและภายนอก</td>
+                                <td class="border text-center"><label class="status-label"><input type="radio" name="q2_2" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td>
+                                <td class="border text-center"><label class="status-label"><input type="radio" name="q2_2" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td>
+                                <td class="border p-1"><input type="text" name="n2_2" class="w-full bg-transparent outline-none"></td>
+                            </tr>
 
-                    <!-- ข้อ 3 -->
-                    <div class="item-card border rounded-lg overflow-hidden shadow-sm">
-                        <div class="bg-gray-800 text-white px-4 py-2 font-bold">3. ระบบไฟส่องสว่างห้อง</div>
-                        <div class="p-0">
-                            <table class="w-full text-sm">
-                                <tr class="border-b">
-                                    <td class="p-3 w-1/2">
-                                        <div class="font-medium">- หลอดไฟส่องสว่าง</div>
-                                        <div class="text-xs text-gray-500 ml-3">• ไฟไม่กระพริบและติดครบทุกดวง</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q3_1" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q3_1" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
+                            <!-- ข้อ 3 -->
+                            <tr class="bg-gray-50 font-bold"><td class="p-2 text-center border">3</td><td class="p-2 border" colspan="4">ระบบไฟส่องสว่างห้อง</td></tr>
+                            <tr>
+                                <td class="border"></td>
+                                <td class="p-2 border pl-6">- จำนวนหลอดไฟใช้ได้ทุกดวง</td>
+                                <td class="border text-center"><label class="status-label"><input type="radio" name="q3_1" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td>
+                                <td class="border text-center"><label class="status-label"><input type="radio" name="q3_1" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td>
+                                <td class="border p-1"><input type="text" name="n3_1" class="w-full bg-transparent outline-none"></td>
+                            </tr>
 
-                    <!-- ข้อ 4 -->
-                    <div class="item-card border rounded-lg overflow-hidden shadow-sm">
-                        <div class="bg-gray-800 text-white px-4 py-2 font-bold">4. อุปกรณ์ส่วนควบ Bus Simulator</div>
-                        <div class="p-0">
-                            <table class="w-full text-sm">
-                                <tr class="border-b">
-                                    <td class="p-3 w-1/2">
-                                        <div class="font-medium">- จอแสดงผล Monitor , Tablet</div>
-                                        <div class="text-xs text-gray-500 ml-3">• ภาพคมชัด สีปกติ ไม่แตกลาย</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q4_1" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q4_1" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                                <tr class="border-b">
-                                    <td class="p-3">
-                                        <div class="font-medium">- ชุดคอมพิวเตอร์ (DMU, INSTU, Alien)</div>
-                                        <div class="text-xs text-gray-500 ml-3">• เครื่องทำงานเงียบ ระบายความร้อนได้ดี</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q4_2" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q4_2" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                                <tr class="border-b">
-                                    <td class="p-3">
-                                        <div class="font-medium">- ฐานเคลื่อนไหว (6DOF)</div>
-                                        <div class="text-xs text-gray-500 ml-3">• การตอบสนองรวดเร็ว ไม่มีการติดขัด</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q4_3" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q4_3" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                                <tr class="border-b">
-                                    <td class="p-3">
-                                        <div class="font-medium">- ชุดเครื่องเสียง</div>
-                                        <div class="text-xs text-gray-500 ml-3">• เสียงลำโพงชัดเจน ไม่มีเสียงซ่ารบกวน</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q4_4" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q4_4" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
+                            <!-- ข้อ 4 -->
+                            <tr class="bg-gray-50 font-bold"><td class="p-2 text-center border">4</td><td class="p-2 border" colspan="4">อุปกรณ์ส่วนควบเครื่องฝึกขับรถโดยสารจำลอง (Bus Simulator)</td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- จอแสดงผล Monitor , Tablet</td><td class="border text-center"><label class="status-label"><input type="radio" name="q4_1" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q4_1" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n4_1" class="w-full bg-transparent outline-none"></td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- ชุดคอมพิวเตอร์ DMU , INSTU , Alien</td><td class="border text-center"><label class="status-label"><input type="radio" name="q4_2" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q4_2" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n4_2" class="w-full bg-transparent outline-none"></td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- ตรวจสอบอุปกรณ์ฐานเคลื่อนไหว (6DOF)</td><td class="border text-center"><label class="status-label"><input type="radio" name="q4_3" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q4_3" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n4_3" class="w-full bg-transparent outline-none"></td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- ชุดเครื่องเสียง</td><td class="border text-center"><label class="status-label"><input type="radio" name="q4_4" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q4_4" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n4_4" class="w-full bg-transparent outline-none"></td></tr>
 
-                    <!-- ข้อ 5 -->
-                    <div class="item-card border rounded-lg overflow-hidden shadow-sm">
-                        <div class="bg-gray-800 text-white px-4 py-2 font-bold">5. ถังดับเพลิง (3 ถัง)</div>
-                        <div class="p-0">
-                            <table class="w-full text-sm">
-                                <tr class="border-b">
-                                    <td class="p-3 w-1/2">
-                                        <div class="font-medium">- สภาพพร้อมใช้งาน</div>
-                                        <div class="text-xs text-gray-500 ml-3">• เข็มเกจวัดอยู่ในแถบสีเขียว และไม่มีสนิม</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q5_1" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q5_1" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
+                            <!-- ข้อ 5 -->
+                            <tr class="bg-gray-50 font-bold"><td class="p-2 text-center border">5</td><td class="p-2 border" colspan="4">ถังดับเพลิง จำนวน 3 ถัง</td></tr>
+                            <tr>
+                                <td class="border"></td><td class="p-2 border pl-6">- สภาพพร้อมใช้งาน (เข็มอยู่ในแถบสีเขียว)</td>
+                                <td class="border text-center"><label class="status-label"><input type="radio" name="q5_1" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td>
+                                <td class="border text-center"><label class="status-label"><input type="radio" name="q5_1" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td>
+                                <td class="border p-1"><input type="text" name="n5_1" class="w-full bg-transparent outline-none"></td>
+                            </tr>
 
-                    <!-- ข้อ 6 -->
-                    <div class="item-card border rounded-lg overflow-hidden shadow-sm">
-                        <div class="bg-gray-800 text-white px-4 py-2 font-bold">6. อุปกรณ์กล้องวงจรปิด (CCTV)</div>
-                        <div class="p-0">
-                            <table class="w-full text-sm">
-                                <tr class="border-b">
-                                    <td class="p-3 w-1/2">
-                                        <div class="font-medium">- กล้องวงจรปิด (4 ตัว)</div>
-                                        <div class="text-xs text-gray-500 ml-3">• มุมกล้องปกติ เห็นภาพครอบคลุม</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q6_1" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q6_1" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                                <tr class="border-b">
-                                    <td class="p-3">
-                                        <div class="font-medium">- เครื่องบันทึกและจอ Monitor</div>
-                                        <div class="text-xs text-gray-500 ml-3">• การบันทึกทำงานต่อเนื่อง (Status: Recording)</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q6_2" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q6_2" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
+                            <!-- ข้อ 6 -->
+                            <tr class="bg-gray-50 font-bold"><td class="p-2 text-center border">6</td><td class="p-2 border" colspan="4">อุปกรณ์กล้องวงจรปิด</td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- กล้องวงจรปิด จำนวน 4 ตัว</td><td class="border text-center"><label class="status-label"><input type="radio" name="q6_1" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q6_1" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n6_1" class="w-full bg-transparent outline-none"></td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- จอแสดงผล Monitor , เครื่องบันทึก</td><td class="border text-center"><label class="status-label"><input type="radio" name="q6_2" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q6_2" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n6_2" class="w-full bg-transparent outline-none"></td></tr>
 
-                    <!-- ข้อ 7 -->
-                    <div class="item-card border rounded-lg overflow-hidden shadow-sm">
-                        <div class="bg-gray-800 text-white px-4 py-2 font-bold">7. ชุดคอมพิวเตอร์ Training Room</div>
-                        <div class="p-0">
-                            <table class="w-full text-sm">
-                                <tr class="border-b">
-                                    <td class="p-3 w-1/2">
-                                        <div class="font-medium">- การทำงานปกติ</div>
-                                        <div class="text-xs text-gray-500 ml-3">• เปิดติดรวดเร็ว เม้าส์และคีย์บอร์ดใช้งานได้ดี</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q7_1" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q7_1" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
+                            <!-- ข้อ 7 -->
+                            <tr class="bg-gray-50 font-bold"><td class="p-2 text-center border">7</td><td class="p-2 border" colspan="4">ชุดคอมพิวเตอร์ภายในห้องอบรม (Training Room)</td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- การทำงานปกติของทุกเครื่อง</td><td class="border text-center"><label class="status-label"><input type="radio" name="q7_1" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q7_1" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n7_1" class="w-full bg-transparent outline-none"></td></tr>
 
-                    <!-- ข้อ 8 -->
-                    <div class="item-card border rounded-lg overflow-hidden shadow-sm">
-                        <div class="bg-gray-800 text-white px-4 py-2 font-bold">8. รายละเอียดระบบทางเทคนิค (Simulator System)</div>
-                        <div class="p-0">
-                            <table class="w-full text-sm">
-                                <tr class="border-b">
-                                    <td class="p-3 w-1/2">
-                                        <div class="font-medium">- ระบบไฟเลี้ยว , เบรก , ความเร็ว</div>
-                                        <div class="text-xs text-gray-500 ml-3">• เซ็นเซอร์ตอบสนองตรงตามการเหยียบ/เปิด</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q8_1" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q8_1" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                                <tr class="border-b">
-                                    <td class="p-3">
-                                        <div class="font-medium">- ระบบควบคุมไฟฟ้าหลักฐานเคลื่อนไหว</div>
-                                        <div class="text-xs text-gray-500 ml-3">• ระบบระบายอากาศในตู้คอนโทรลทำงานปกติ</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q8_2" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q8_2" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                                <tr class="border-b">
-                                    <td class="p-3">
-                                        <div class="font-medium">- ความปลอดภัยสายไฟมอเตอร์</div>
-                                        <div class="text-xs text-gray-500 ml-3">• สายไฟไม่มีรอยถลอกหรือชำรุด</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q8_3" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q8_3" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                                <tr class="border-b">
-                                    <td class="p-3">
-                                        <div class="font-medium">- ปุ่มกดฉุกเฉิน (Emergency Stop)</div>
-                                        <div class="text-xs text-gray-500 ml-3">• กดแล้วระบบต้องหยุดทันที</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q8_6" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q8_6" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                                <tr class="border-b">
-                                    <td class="p-3">
-                                        <div class="font-medium">- น็อตยึดและอุปกรณ์ทางกล</div>
-                                        <div class="text-xs text-gray-500 ml-3">• ขันแน่น ไม่มีการหลวมคลอนของโครงสร้าง</div>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q8_10" value="ผ่าน" class="status-pass h-5 w-5" required>
-                                            <span>ผ่าน</span>
-                                        </label>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <label class="status-label">
-                                            <input type="radio" name="q8_10" value="ไม่ผ่าน" class="status-fail h-5 w-5">
-                                            <span>ไม่ผ่าน</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-
+                            <!-- ข้อ 8 -->
+                            <tr class="bg-gray-50 font-bold"><td class="p-2 text-center border">8</td><td class="p-2 border" colspan="4">ตรวจสอบระบบรถโดยสารจำลอง (Bus Simulator)</td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- ตรวจสอบระบบไฟเลี้ยว ,เบรก ,ความเร็ว</td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_1" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_1" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n8_1" class="w-full bg-transparent outline-none"></td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- ตรวจสอบระบบควบคุมไฟฟ้าหลักของฐานเคลื่อนไหว</td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_2" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_2" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n8_2" class="w-full bg-transparent outline-none"></td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- ตรวจสอบความปลอดภัยสายไฟมอเตอร์</td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_3" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_3" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n8_3" class="w-full bg-transparent outline-none"></td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- ตรวจสอบการเข้า Program</td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_4" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_4" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n8_4" class="w-full bg-transparent outline-none"></td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- ตรวจสอบการทำงานของเบรกเกอร์ควบคุมระบบ 6 DOF</td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_5" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_5" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n8_5" class="w-full bg-transparent outline-none"></td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- ตรวจสอบการทำงานปุ่มกดฉุกเฉิน</td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_6" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_6" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n8_6" class="w-full bg-transparent outline-none"></td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- ตรวจสอบความปลอดภัยเดือยเบร่ง</td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_7" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_7" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n8_7" class="w-full bg-transparent outline-none"></td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- ตรวจสอบและทำความสะอาดช่องระบายอากาศด้านนอก</td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_8" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_8" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n8_8" class="w-full bg-transparent outline-none"></td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- ตรวจสอบตัวยึดบอร์ดขับมอเตอร์</td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_9" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_9" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n8_9" class="w-full bg-transparent outline-none"></td></tr>
+                            <tr><td class="border"></td><td class="p-2 border pl-6">- ตรวจสอบอุปกรณ์น็อตยึด</td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_10" value="ผ่าน" class="status-pass h-5 w-5" required><span></span></label></td><td class="border text-center"><label class="status-label"><input type="radio" name="q8_10" value="ไม่ผ่าน" class="status-fail h-5 w-5"><span></span></label></td><td class="border p-1"><input type="text" name="n8_10" class="w-full bg-transparent outline-none"></td></tr>
+                        </tbody>
+                    </table>
                 </div>
 
-                <!-- หมายเหตุ -->
-                <div class="mt-8 mb-8">
-                    <label class="block text-sm font-bold text-gray-700 mb-2">หมายเหตุ / ปัญหาที่พบเพิ่มเติม</label>
-                    <textarea id="notes" rows="4" class="w-full border-gray-300 rounded-lg p-3 border focus:ring-2 focus:ring-blue-500 bg-white/50" placeholder="ระบุรายละเอียดเพิ่มเติม..."></textarea>
+                <div class="mt-6 mb-8">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">หมายเหตุเพิ่มเติม / ปัญหาที่พบ</label>
+                    <textarea id="notes" rows="3" class="w-full border-gray-300 rounded-lg p-3 border focus:ring-2 focus:ring-blue-500 bg-white/50" placeholder="ระบุรายละเอียดเพิ่มเติม..."></textarea>
                 </div>
 
-                <!-- ลายเซ็น - แก้ไขให้แนวเดียวกัน -->
-                <div class="signature-section flex flex-col sm:flex-row justify-between items-start gap-10 mt-16 pt-10 border-t border-gray-100">
+                <div class="signature-section flex flex-col sm:flex-row justify-between items-start gap-10 mt-16 pb-10">
                     <div class="signature-box w-full sm:w-[45%] text-center">
                         <p class="mb-14 font-bold text-gray-800">ลงชื่อผู้ตรวจสอบ</p>
-                        <div class="border-b border-gray-400 mx-auto w-4/5 mb-3"></div>
+                        <div class="border-b border-gray-400 mx-auto w-4/5 mb-2"></div>
                         <p class="text-sm text-gray-700">( <span id="printName" class="px-2">....................................................</span> )</p>
-                        <p id="printDate" class="text-sm mt-3 font-medium text-gray-600">วันที่: ........ / ........ / ................</p>
+                        <p id="printDate" class="text-sm mt-2 font-medium text-gray-600">วันที่: ........ / ........ / ................</p>
                     </div>
                     
                     <div class="signature-box w-full sm:w-[45%] text-center">
                         <p class="mb-14 font-bold text-gray-800">ลงชื่อหัวหน้างาน / ผู้รับทราบ</p>
-                        <div class="border-b border-gray-400 mx-auto w-4/5 mb-3"></div>
+                        <div class="border-b border-gray-400 mx-auto w-4/5 mb-2"></div>
                         <p class="text-sm text-gray-700">( .................................................... )</p>
-                        <p class="text-sm mt-3 font-medium text-gray-600">วันที่: ........ / ........ / ................</p>
+                        <p class="text-sm mt-2 font-medium text-gray-600">วันที่: ........ / ........ / ................</p>
                     </div>
                 </div>
 
-                <!-- ปุ่มกด -->
-                <div class="no-print mt-12 mb-10">
-                    <button type="button" onclick="prepareAndPrint()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 px-6 rounded-xl shadow-lg flex justify-center items-center transition-all transform active:scale-95">
-                        <i class="fas fa-check-circle mr-2 text-xl"></i> บันทึกข้อมูลและสร้างรายงาน PDF
+                <div class="no-print mt-8 mb-10">
+                    <button type="button" onclick="handleSubmit()" class="w-full bg-pink-700 hover:bg-blue-800 text-white font-bold py-4 px-6 rounded-xl shadow-lg flex justify-center items-center transition-all transform active:scale-95">
+                        <i class="fas fa-save mr-2 text-xl"></i> บันทึกข้อมูลและพิมพ์รายงาน PDF
                     </button>
                 </div>
             </form>
@@ -528,19 +243,19 @@
     </div>
 
     <script>
+        const SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+
         window.onload = function() {
             const now = new Date();
             const dateInput = document.getElementById('checkDate');
             dateInput.value = now.toISOString().split('T')[0];
-            dateInput.min = now.toISOString().split('T')[0];
 
             const months = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-            const selectMonth = document.getElementById('selectMonth');
-            selectMonth.value = months[now.getMonth()];
+            document.getElementById('selectMonth').value = months[now.getMonth()];
 
             const selectYear = document.getElementById('selectYear');
             const currentYearBE = now.getFullYear() + 543;
-            for (let i = 0; i < 10; i++) {
+            for (let i = -1; i < 5; i++) {
                 const yearOption = document.createElement('option');
                 yearOption.value = currentYearBE + i;
                 yearOption.text = currentYearBE + i;
@@ -549,23 +264,47 @@
             selectYear.value = currentYearBE;
         };
 
-        function prepareAndPrint() {
+        async function handleSubmit() {
             const form = document.getElementById('auditForm');
             if (!form.checkValidity()) {
-                alert('กรุณากรอกชื่อและตรวจสอบรายการให้ครบถ้วนก่อนออกรายงาน');
+                alert('กรุณากรอกข้อมูลที่สำคัญให้ครบถ้วน');
                 form.reportValidity();
                 return;
             }
 
-            const name = document.getElementById('inspectorName').value;
-            const date = document.getElementById('checkDate').value;
-            const d = new Date(date);
-            const formattedDate = `${d.getDate()} / ${d.getMonth() + 1} / ${d.getFullYear() + 543}`;
+            document.getElementById('loader').style.display = 'flex';
+            const formData = new FormData(form);
+            const data = {
+                inspectorName: document.getElementById('inspectorName').value,
+                month: document.getElementById('selectMonth').value,
+                year: document.getElementById('selectYear').value,
+                notes: document.getElementById('notes').value
+            };
+            
+            formData.forEach((value, key) => { data[key] = value; });
 
-            document.getElementById('printName').innerText = name || "....................................................";
-            document.getElementById('printDate').innerText = `วันที่: ${formattedDate}`;
-
-            window.print();
+            try {
+                if (SCRIPT_URL !== "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE") {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        cache: 'no-cache',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+                
+                const d = new Date(document.getElementById('checkDate').value);
+                document.getElementById('printName').innerText = data.inspectorName;
+                document.getElementById('printDate').innerText = `วันที่: ${d.getDate()} / ${d.getMonth() + 1} / ${d.getFullYear() + 543}`;
+                
+                document.getElementById('loader').style.display = 'none';
+                window.print();
+            } catch (error) {
+                document.getElementById('loader').style.display = 'none';
+                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล แต่คุณยังสามารถพิมพ์รายงานได้');
+                window.print();
+            }
         }
     </script>
 </body>
